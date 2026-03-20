@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>সালামি ডায়েরি</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg-deep: #07080f; --bg-card: #0d1022;
+      --accent: #7c3aed; --accent2: #ec4899; --accent3: #06b6d4;
+      --text-main: #e2e8f0; --text-muted: #94a3b8;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Hind Siliguri',sans-serif; background:var(--bg-deep); color:var(--text-main); overflow-x:hidden; }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events:none; z-index:999; opacity:0.4;
+    }
+    .blob-bg { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .blob { position:absolute; border-radius:50%; filter:blur(120px); opacity:0.15; animation:blobFloat 8s ease-in-out infinite alternate; }
+    .blob-1 { width:600px; height:600px; background:var(--accent); top:-200px; left:-100px; }
+    .blob-2 { width:500px; height:500px; background:var(--accent2); bottom:-100px; right:-100px; animation-delay:3s; }
+    .blob-3 { width:400px; height:400px; background:var(--accent3); top:40%; left:40%; animation-delay:1.5s; }
+    @keyframes blobFloat { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(40px,30px) scale(1.08);} }
+
+    /* ── NAV ── */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:200;
+      padding:14px 40px; display:flex; align-items:center; justify-content:space-between;
+      background:rgba(7,8,15,0.75); backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(124,58,237,0.15);
+    }
+    .logo { display:flex; align-items:center; gap:10px; font-size:1.1rem; font-weight:700; color:#fff; text-decoration:none; }
+    .logo-icon {
+      width:38px; height:38px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+      border-radius:10px; display:flex; align-items:center; justify-content:center;
+      font-size:1.1rem; box-shadow:0 0 20px rgba(124,58,237,0.5); transition:transform 0.3s,box-shadow 0.3s;
+    }
+    .logo:hover .logo-icon { transform:rotate(10deg) scale(1.1); box-shadow:0 0 35px rgba(124,58,237,0.8); }
+    .nav-links { display:flex; align-items:center; gap:10px; }
+    .nav-link {
+      color:var(--text-muted); text-decoration:none; font-size:0.9rem;
+      padding:8px 16px; border-radius:8px; transition:color 0.3s,background 0.3s;
+      display:flex; align-items:center; gap:6px; background:none; border:none;
+      cursor:pointer; font-family:'Hind Siliguri',sans-serif;
+    }
+    .nav-link:hover { color:#fff; background:rgba(255,255,255,0.06); }
+    .btn-register {
+      background:linear-gradient(135deg,var(--accent),#6d28d9); color:#fff; border:none;
+      padding:10px 20px; border-radius:10px; font-family:'Hind Siliguri',sans-serif;
+      font-size:0.9rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;
+      transition:all 0.3s; box-shadow:0 0 20px rgba(124,58,237,0.3); position:relative; overflow:hidden;
+    }
+    .btn-register::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); transition:left 0.5s; }
+    .btn-register:hover::before { left:100%; }
+    .btn-register:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(124,58,237,0.6); }
+
+    /* ── AVATAR ── */
+    #userAvatar { display:none; position:relative; }
+    #avatarBtn {
+      width:42px; height:42px; border-radius:50%;
+      background:linear-gradient(135deg,#7c3aed,#ec4899);
+      border:2px solid rgba(124,58,237,0.5); color:#fff;
+      font-size:1rem; font-weight:700; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all 0.3s; box-shadow:0 0 20px rgba(124,58,237,0.4);
+    }
+    #avatarBtn:hover { transform:scale(1.1); box-shadow:0 0 35px rgba(124,58,237,0.7); }
+    .online-dot { position:absolute; bottom:1px; right:1px; width:10px; height:10px; background:#22c55e; border-radius:50%; border:2px solid #07080f; }
+
+    /* ── MINI DASHBOARD ── */
+    #miniDash {
+      display:none; position:absolute; top:54px; right:0; width:340px;
+      background:rgba(8,10,26,0.98); border:1px solid rgba(124,58,237,0.2);
+      border-radius:20px; overflow:hidden;
+      box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 0 1px rgba(124,58,237,0.08);
+      transform:translateY(-12px) scale(0.95); opacity:0;
+      transition:transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.3s;
+    }
+    #miniDash.open { transform:translateY(0) scale(1); opacity:1; }
+
+    /* ── HERO ── */
+    .hero { min-height:100vh; display:flex; align-items:center; padding:100px 40px 60px; position:relative; z-index:1; gap:40px; }
+    .hero-left { flex:1; max-width:600px; }
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3);
+      color:#a78bfa; padding:6px 14px; border-radius:50px; font-size:0.8rem;
+      margin-bottom:28px; animation:fadeSlideDown 0.8s ease forwards;
+    }
+    .hero-title { font-size:clamp(2.8rem,5vw,4.2rem); font-weight:700; line-height:1.2; margin-bottom:20px; animation:fadeSlideUp 0.9s ease forwards; }
+    .hero-title .g { background:linear-gradient(135deg,var(--accent2),#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .hero-desc { color:var(--text-muted); font-size:1rem; line-height:1.7; margin-bottom:36px; max-width:480px; animation:fadeSlideUp 1s ease forwards; }
+    .hero-buttons { display:flex; gap:12px; flex-wrap:wrap; animation:fadeSlideUp 1.1s ease forwards; }
+    .btn-primary {
+      background:linear-gradient(135deg,var(--accent),#6d28d9); color:#fff; border:none;
+      padding:14px 24px; border-radius:12px; font-family:'Hind Siliguri',sans-serif;
+      font-size:1rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px;
+      transition:all 0.3s; box-shadow:0 0 25px rgba(124,58,237,0.4); position:relative; overflow:hidden;
+    }
+    .btn-primary::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent); opacity:0; transition:opacity 0.3s; }
+    .btn-primary:hover::after { opacity:1; }
+    .btn-primary:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(124,58,237,0.6); }
+    .btn-secondary {
+      background:rgba(255,255,255,0.05); color:var(--text-main); border:1px solid rgba(255,255,255,0.1);
+      padding:14px 24px; border-radius:12px; font-family:'Hind Siliguri',sans-serif;
+      font-size:1rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.3s;
+    }
+    .btn-secondary:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.2); transform:translateY(-2px); }
+
+    /* Hero right */
+    .hero-right { flex:1; display:flex; flex-direction:column; gap:16px; max-width:340px; margin-left:auto; animation:fadeSlideLeft 1s ease forwards; }
+    .stat-card {
+      background:rgba(13,16,34,0.8); border:1px solid rgba(255,255,255,0.07);
+      border-radius:18px; padding:22px; backdrop-filter:blur(10px);
+      transition:all 0.4s; position:relative; overflow:hidden;
+    }
+    .stat-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(124,58,237,0.05),transparent); opacity:0; transition:opacity 0.4s; }
+    .stat-card:hover::before { opacity:1; }
+    .stat-card:hover { border-color:rgba(124,58,237,0.3); transform:translateY(-4px) scale(1.02); box-shadow:0 20px 60px rgba(0,0,0,0.4),0 0 0 1px rgba(124,58,237,0.2); }
+    .notification-card {
+      background:rgba(13,16,34,0.8); border:1px solid rgba(255,255,255,0.07);
+      border-radius:16px; padding:16px 18px; display:flex; align-items:center; gap:12px;
+      backdrop-filter:blur(10px); transition:all 0.3s;
+    }
+    .notification-card:hover { border-color:rgba(124,58,237,0.3); transform:translateX(-4px); }
+    .tag { padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:500; }
+    .tag-bkash { background:rgba(236,72,153,0.2); color:#f472b6; }
+    .tag-nagad { background:rgba(245,158,11,0.2); color:#fbbf24; }
+    .tag-rocket { background:rgba(124,58,237,0.2); color:#a78bfa; }
+    .tag-upay { background:rgba(34,197,94,0.2); color:#4ade80; }
+
+    /* Stats bar */
+    .stats-bar {
+      position:relative; z-index:1; background:rgba(13,16,34,0.6);
+      border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06);
+      padding:36px 40px; display:flex; justify-content:center; gap:80px;
+    }
+    .stat-item { text-align:center; }
+    .stat-item .number { font-size:2.2rem; font-weight:700; background:linear-gradient(135deg,var(--accent2),#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .stat-item .desc { color:var(--text-muted); font-size:0.85rem; margin-top:4px; }
+
+    section { position:relative; z-index:1; padding:80px 40px; }
+    .section-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3); color:#a78bfa; padding:6px 14px; border-radius:50px; font-size:0.8rem; margin-bottom:20px; }
+    .section-title { font-size:clamp(1.8rem,3vw,2.5rem); font-weight:700; text-align:center; margin-bottom:12px; }
+    .section-title .g { background:linear-gradient(135deg,var(--accent2),#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .section-subtitle { text-align:center; color:var(--text-muted); font-size:1rem; margin-bottom:60px; }
+
+    .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; max-width:1100px; margin:0 auto; }
+    .feature-card {
+      background:rgba(13,16,34,0.7); border:1px solid rgba(255,255,255,0.07);
+      border-radius:20px; padding:28px; cursor:pointer;
+      transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); position:relative; overflow:hidden; backdrop-filter:blur(10px);
+    }
+    .feature-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--ca,var(--accent)),transparent); transform:scaleX(0); transition:transform 0.4s; }
+    .feature-card:hover::before { transform:scaleX(1); }
+    .feature-card::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(124,58,237,0.08),transparent 60%); opacity:0; transition:opacity 0.3s; pointer-events:none; }
+    .feature-card:hover::after { opacity:1; }
+    .feature-card:hover { border-color:rgba(124,58,237,0.25); transform:translateY(-8px) scale(1.01); box-shadow:0 30px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(124,58,237,0.15); }
+    .feature-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:18px; transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+    .feature-card:hover .feature-icon { transform:rotate(-8deg) scale(1.15); }
+    .feature-title { font-size:1.05rem; font-weight:700; color:#fff; margin-bottom:10px; }
+    .feature-desc { color:var(--text-muted); font-size:0.88rem; line-height:1.7; }
+
+    .btn-cta {
+      background:linear-gradient(135deg,var(--accent),#6d28d9); color:#fff; border:none;
+      padding:16px 32px; border-radius:14px; font-family:'Hind Siliguri',sans-serif;
+      font-size:1.05rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:10px;
+      transition:all 0.3s; box-shadow:0 0 40px rgba(124,58,237,0.5); position:relative; overflow:hidden;
+    }
+    .btn-cta::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; background:rgba(255,255,255,0.2); border-radius:50%; transform:translate(-50%,-50%); transition:width 0.6s,height 0.6s; }
+    .btn-cta:hover::before { width:300px; height:300px; }
+    .btn-cta:hover { transform:scale(1.05); box-shadow:0 0 60px rgba(124,58,237,0.7); }
+
+    footer { position:relative; z-index:1; border-top:1px solid rgba(255,255,255,0.06); padding:40px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; }
+    .footer-link { color:var(--text-muted); font-size:0.8rem; text-decoration:none; transition:color 0.3s; }
+    .footer-link:hover { color:#a78bfa; }
+
+    /* ── MODALS ── */
+    .modal-bg {
+      position:fixed; inset:0; z-index:1000;
+      background:rgba(7,8,15,0.88); backdrop-filter:blur(18px);
+      display:none; align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-box {
+      background:rgba(9,11,27,0.98); border-radius:28px; padding:48px 44px; width:100%;
+      position:relative; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(124,58,237,0.12);
+      transform:scale(0.92) translateY(30px); opacity:0;
+      transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275),opacity 0.35s ease;
+    }
+    .modal-box.open { transform:scale(1) translateY(0); opacity:1; }
+    .modal-close {
+      position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%;
+      background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1);
+      color:#94a3b8; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.25s;
+    }
+    .modal-close:hover { background:rgba(255,255,255,0.15); color:#fff; }
+    .modal-top-bar { position:absolute; top:0; left:10%; right:10%; height:2px; border-radius:2px; }
+
+    /* ── FORM ── */
+    .input-group { display:flex; flex-direction:column; gap:6px; }
+    .input-label { font-size:0.82rem; font-weight:600; color:#cbd5e1; }
+    .input-wrap { position:relative; display:flex; align-items:center; }
+    .input-icon { position:absolute; left:14px; font-size:0.95rem; z-index:1; pointer-events:none; }
+    .f-input {
+      width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+      border-radius:11px; padding:13px 14px 13px 42px; color:#e2e8f0;
+      font-family:'Hind Siliguri',sans-serif; font-size:0.9rem; outline:none;
+      transition:border-color 0.3s,box-shadow 0.3s,background 0.3s;
+    }
+    .f-input::placeholder { color:#475569; }
+    .f-input:focus { border-color:rgba(124,58,237,0.6); background:rgba(124,58,237,0.06); box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
+    .f-input:hover:not(:focus) { border-color:rgba(255,255,255,0.2); }
+    .err-box { display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); border-radius:10px; padding:10px 14px; color:#f87171; font-size:0.82rem; }
+
+    /* tab switcher */
+    .tab-bar { display:flex; background:rgba(255,255,255,0.05); border-radius:12px; padding:4px; gap:4px; margin-bottom:22px; }
+    .tab-btn { flex:1; padding:10px; border-radius:9px; border:none; background:transparent; color:#94a3b8; font-family:'Hind Siliguri',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.3s; }
+    .tab-btn.active { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; }
+
+    /* action btn */
+    .action-btn {
+      background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; border:none;
+      padding:15px 24px; border-radius:12px; font-family:'Hind Siliguri',sans-serif;
+      font-size:1rem; font-weight:700; cursor:pointer; width:100%;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      transition:all 0.3s; box-shadow:0 0 30px rgba(124,58,237,0.35);
+    }
+    .action-btn:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(124,58,237,0.6); }
+    .action-btn:active { transform:scale(0.98); }
+    .action-btn.cyan { background:linear-gradient(135deg,#06b6d4,#7c3aed); box-shadow:0 0 30px rgba(6,182,212,0.3); }
+    .action-btn.cyan:hover { box-shadow:0 12px 40px rgba(6,182,212,0.55); }
+
+    /* txn row */
+    .txn-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 10px; border-radius:10px; transition:all 0.25s; cursor:default;
+    }
+    .txn-row:hover { transform:translateX(3px); }
+
+    @keyframes fadeSlideUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes fadeSlideDown { from{opacity:0;transform:translateY(-20px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes fadeSlideLeft { from{opacity:0;transform:translateX(40px);} to{opacity:1;transform:translateX(0);} }
+    @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+    @keyframes successPop { from{opacity:0;transform:scale(0.8) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+    @keyframes bounceIn { 0%{transform:scale(0);} 60%{transform:scale(1.2);} 100%{transform:scale(1);} }
+    @keyframes grow { from{width:0;} to{width:68%;} }
+    @keyframes blobFloat { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(40px,30px) scale(1.08);} }
+    @keyframes floatDot { 0%{transform:translateY(100vh) scale(0);opacity:0;} 10%{opacity:1;} 90%{opacity:0.5;} 100%{transform:translateY(-100px) scale(1);opacity:0;} }
+
+    .animate-fade-up { opacity:0; transform:translateY(30px); transition:opacity 0.7s ease,transform 0.7s ease; }
+    .animate-fade-up.visible { opacity:1; transform:translateY(0); }
+
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background:var(--accent); border-radius:3px; }
+    .floating-dots { position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; overflow:hidden; }
+    .dot { position:absolute; border-radius:50%; animation:floatDot linear infinite; }
+
+    @media (max-width:768px) {
+      .hero { flex-direction:column; text-align:center; gap:40px; }
+      .hero-right { max-width:100%; margin:0; }
+      .hero-buttons { justify-content:center; }
+      .stats-bar { gap:30px; flex-wrap:wrap; }
+      nav { padding:12px 20px; }
+      .nav-links { gap:6px; }
+      .nav-link span { display:none; }
+      section { padding:60px 20px; }
+      footer { flex-direction:column; text-align:center; }
+      #miniDash { width:290px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob-bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="floating-dots" id="floatingDots"></div>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <a href="#" class="logo" onclick="goHome(event)">
+    <div class="logo-icon">💰</div>
+    <span>সালামি ডায়েরি</span>
+  </a>
+  <div class="nav-links">
+    <button class="nav-link" onclick="goHome(event)">🏠 <span>হোম</span></button>
+    <!-- Logged-out -->
+    <button id="navLoginBtn" class="nav-link" onclick="openLogin()">→ <span>লগইন</span></button>
+    <button id="navRegBtn" class="btn-register" onclick="openReg()">✚ রেজিস্ট্রেশন</button>
+    <!-- Logged-in avatar -->
+    <div id="userAvatar">
+      <button id="avatarBtn" onclick="toggleDash()"><span id="avatarLetter">R</span></button>
+      <div class="online-dot"></div>
+      <!-- ── MINI DASHBOARD ── -->
+      <div id="miniDash">
+        <div style="height:3px;background:linear-gradient(90deg,#7c3aed,#ec4899,#06b6d4);"></div>
+        <!-- Profile row -->
+        <div style="padding:18px 18px 14px;background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(236,72,153,0.06));border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="dashAvBig" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 0 18px rgba(124,58,237,0.5);">R</div>
+            <div style="flex:1;min-width:0;">
+              <div id="dashName" style="font-size:0.95rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Rahim Uddin</div>
+              <div id="dashEmail" style="font-size:0.72rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">rahim@email.com</div>
+              <div id="dashPhone" style="font-size:0.7rem;color:#a78bfa;margin-top:1px;">📱 01700000000</div>
+            </div>
+            <button onclick="doLogout()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;padding:5px 10px;border-radius:8px;font-size:0.7rem;font-weight:600;cursor:pointer;font-family:'Hind Siliguri',sans-serif;transition:all 0.25s;white-space:nowrap;"
+              onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">লগআউট</button>
+          </div>
+        </div>
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="padding:14px 16px;border-right:1px solid rgba(255,255,255,0.06);transition:background 0.2s;" onmouseover="this.style.background='rgba(124,58,237,0.08)'" onmouseout="this.style.background=''">
+            <div style="font-size:0.68rem;color:#94a3b8;margin-bottom:5px;">💰 সালামি পেয়েছি</div>
+            <div id="dashRcv" style="font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">৳৭০০</div>
+            <div style="font-size:0.65rem;color:#4ade80;margin-top:2px;">↑ এই মাসে</div>
+          </div>
+          <div style="padding:14px 16px;transition:background 0.2s;" onmouseover="this.style.background='rgba(6,182,212,0.08)'" onmouseout="this.style.background=''">
+            <div style="font-size:0.68rem;color:#94a3b8;margin-bottom:5px;">🎁 সালামি দিয়েছি</div>
+            <div id="dashSnt" style="font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,#06b6d4,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">৳১০০</div>
+            <div style="font-size:0.65rem;color:#94a3b8;margin-top:2px;">মোট লেনদেন</div>
+          </div>
+        </div>
+        <!-- Received list -->
+        <div style="padding:12px 16px 6px;">
+          <div style="font-size:0.7rem;font-weight:700;color:#a78bfa;margin-bottom:8px;display:flex;align-items:center;gap:5px;">💸 সালামি পেয়েছি</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div class="txn-row" style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.12);" onmouseover="this.style.background='rgba(124,58,237,0.18)';this.style.borderColor='rgba(124,58,237,0.3)'" onmouseout="this.style.background='rgba(124,58,237,0.08)';this.style.borderColor='rgba(124,58,237,0.12)'">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:26px;height:26px;background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#fff;">আ</div>
+                <div><div style="font-size:0.76rem;font-weight:600;color:#e2e8f0;">আকাশ হোসেন</div><div style="font-size:0.62rem;color:#94a3b8;">বিকাশ</div></div>
+              </div>
+              <div style="text-align:right;"><div style="font-size:0.82rem;font-weight:700;color:#4ade80;">+৳৫০০</div><div style="font-size:0.6rem;color:#64748b;">২ দিন আগে</div></div>
+            </div>
+            <div class="txn-row" style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.12);" onmouseover="this.style.background='rgba(124,58,237,0.18)';this.style.borderColor='rgba(124,58,237,0.3)'" onmouseout="this.style.background='rgba(124,58,237,0.08)';this.style.borderColor='rgba(124,58,237,0.12)'">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:26px;height:26px;background:linear-gradient(135deg,#06b6d4,#3b82f6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#fff;">ন</div>
+                <div><div style="font-size:0.76rem;font-weight:600;color:#e2e8f0;">নাসরিন বেগম</div><div style="font-size:0.62rem;color:#94a3b8;">নগদ</div></div>
+              </div>
+              <div style="text-align:right;"><div style="font-size:0.82rem;font-weight:700;color:#4ade80;">+৳২০০</div><div style="font-size:0.6rem;color:#64748b;">৩ দিন আগে</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Sent list -->
+        <div style="padding:6px 16px 12px;">
+          <div style="font-size:0.7rem;font-weight:700;color:#06b6d4;margin-bottom:8px;display:flex;align-items:center;gap:5px;">🎁 সালামি দিয়েছি</div>
+          <div class="txn-row" style="background:rgba(6,182,212,0.07);border:1px solid rgba(6,182,212,0.12);" onmouseover="this.style.background='rgba(6,182,212,0.16)';this.style.borderColor='rgba(6,182,212,0.3)'" onmouseout="this.style.background='rgba(6,182,212,0.07)';this.style.borderColor='rgba(6,182,212,0.12)'">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:26px;height:26px;background:linear-gradient(135deg,#f97316,#ec4899);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#fff;">র</div>
+              <div><div style="font-size:0.76rem;font-weight:600;color:#e2e8f0;">রফিক ভাই</div><div style="font-size:0.62rem;color:#94a3b8;">বিকাশ</div></div>
+            </div>
+            <div style="text-align:right;"><div style="font-size:0.82rem;font-weight:700;color:#f87171;">−৳১০০</div><div style="font-size:0.6rem;color:#64748b;">১ দিন আগে</div></div>
+          </div>
+        </div>
+        <div style="padding:8px 16px 12px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;">
+          <a href="#" style="font-size:0.72rem;color:#a78bfa;text-decoration:none;" onmouseover="this.style.color='#c4b5fd'" onmouseout="this.style.color='#a78bfa'">সম্পূর্ণ ড্যাশবোর্ড →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero" id="homeTop">
+  <div class="hero-left">
+    <div class="hero-badge">✦ নতুন আর্টিকেল পড়ে দেখুন</div>
+    <h1 class="hero-title">Digital<br><span class="g">সালামি</span><br>Diary</h1>
+    <p class="hero-desc">আপনার নিজের লিংক তৈরি করুন, শেয়ার করুন এবং সহজেই সালামি গ্রহণ করুন। বিকাশ, নগদ, রকেট, যেকোনো — সবকিছু এক জায়গায়।</p>
+    <div class="hero-buttons">
+      <button class="btn-primary" onclick="openReg()">💸 শুরু করুন</button>
+      <button class="btn-secondary" onclick="openLogin()">→ লগইন</button>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="stat-card" style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:2rem;font-weight:700;background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">৳১২,৫০০</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">মোট সালামি</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:2rem;font-weight:700;color:#ec4899;">৪৮</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">জনপ্রিয় সংখ্যা</div>
+      </div>
+    </div>
+    <div class="notification-card">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:#fff;font-weight:600;flex-shrink:0;">স</div>
+      <div style="flex:1;">
+        <div style="font-size:0.85rem;font-weight:600;color:#fff;">নতুন সালামি পেয়েছেন</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">বিভিন্ন মাধ্যমে সালামি পাওয়া যায়</div>
+        <div style="display:flex;gap:4px;margin-top:6px;">
+          <span class="tag tag-bkash">বিকাশ</span>
+          <span class="tag tag-nagad">নগদ</span>
+          <span class="tag tag-rocket">রকেট</span>
+          <span class="tag tag-upay">উপায়</span>
+        </div>
+      </div>
+      <div style="color:#4ade80;font-weight:700;font-size:0.85rem;">+২০০</div>
+    </div>
+    <div class="stat-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:0.85rem;color:var(--text-muted);">সাপ্তাহিক অগ্রগতি</span>
+        <span style="color:#4ade80;font-size:0.85rem;">+৩৪%</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:6px;height:6px;overflow:hidden;">
+        <div style="width:68%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px;animation:grow 1.5s ease forwards;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item animate-fade-up"><div class="number">১০০%</div><div class="desc">বিনামূল্যে ব্যবহার</div></div>
+  <div class="stat-item animate-fade-up" style="transition-delay:0.1s"><div class="number">৪টি+</div><div class="desc">পেমেন্ট মাধ্যম</div></div>
+  <div class="stat-item animate-fade-up" style="transition-delay:0.2s"><div class="number">২৪/৭</div><div class="desc">সার্ভিস চালু</div></div>
+</div>
+
+<!-- CTA -->
+<section style="text-align:center;">
+  <h1 class="animate-fade-up" style="font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.3;margin-bottom:20px;">
+    আজই সাজিয়ে নিন<br>আপনার <span style="background:linear-gradient(135deg,var(--accent2),#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">সালামি ডায়েরি</span>
+  </h1>
+  <p class="animate-fade-up" style="color:var(--text-muted);max-width:500px;margin:0 auto 36px;font-size:1rem;line-height:1.7;">দেরি না করে এখনই ফ্রি রেজিস্ট্রেশন করুন এবং আপনার ডিজিটাল সালামি উৎসব শুরু করুন।</p>
+  <button class="btn-cta animate-fade-up" onclick="openReg()">✚ এখনই শুরু করুন</button>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div style="text-align:center;margin-bottom:60px;">
+    <div class="section-badge animate-fade-up">⭐ আকর্ষণীয় ফিচার</div>
+    <h2 class="section-title animate-fade-up">কেন আমাদের <span class="g">সালামি ডায়েরি</span> সেরা?</h2>
+    <p class="section-subtitle animate-fade-up">ডিজিটাল যুগে সালামি সংগ্রহ হোক আধুনিক ও ঝামেলামুক্ত।</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card animate-fade-up" style="--ca:#7c3aed">
+      <div class="feature-icon" style="background:rgba(124,58,237,0.15)">🔗</div>
+      <div class="feature-title">পার্সোনালাইজড লিংক</div>
+      <div class="feature-desc">পছন্দমতো ইউজারনেম দিয়ে নিজের লিংক সেট করুন।</div>
+    </div>
+    <div class="feature-card animate-fade-up" style="--ca:#ec4899;transition-delay:0.1s">
+      <div class="feature-icon" style="background:rgba(236,72,153,0.15)">📱</div>
+      <div class="feature-title">মাল্টিপল পেমেন্ট</div>
+      <div class="feature-desc">বিকাশ, নগদ, রকেট সহ সব মাধ্যমে সালামি পাঠান।</div>
+    </div>
+    <div class="feature-card animate-fade-up" style="--ca:#06b6d4;transition-delay:0.2s">
+      <div class="feature-icon" style="background:rgba(6,182,212,0.15)">📊</div>
+      <div class="feature-title">লাইভ ড্যাশবোর্ড</div>
+      <div class="feature-desc">সব আপডেট রিয়েল-টাইমে দেখার সুযোগ।</div>
+    </div>
+    <div class="feature-card animate-fade-up" style="--ca:#f97316;transition-delay:0.1s">
+      <div class="feature-icon" style="background:rgba(249,115,22,0.15)">📤</div>
+      <div class="feature-title">সহজে শেয়ারিং</div>
+      <div class="feature-desc">এক ক্লিকে Facebook বা WhatsApp-এ শেয়ার করুন।</div>
+    </div>
+    <div class="feature-card animate-fade-up" style="--ca:#10b981;transition-delay:0.2s">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.15)">🛡️</div>
+      <div class="feature-title">টপ নচ সিকিউরিটি</div>
+      <div class="feature-desc">আধুনিক এনক্রিপশনে ডাটা সুরক্ষিত।</div>
+    </div>
+    <div class="feature-card animate-fade-up" style="--ca:#f59e0b;transition-delay:0.3s">
+      <div class="feature-icon" style="background:rgba(245,158,11,0.15)">💻</div>
+      <div class="feature-title">সব ডিভাইসে ফ্রেন্ডলি</div>
+      <div class="feature-desc">মোবাইল থেকে কম্পিউটার—সব জায়গায় চমৎকার।</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div style="font-size:0.95rem;font-weight:700;color:#fff;">🏠 সালামি ডায়েরি</div>
+    <div style="color:var(--text-muted);font-size:0.8rem;margin-top:4px;">সালামি ট্র্যাকিং এর আধুনিক ডায়েরি</div>
+  </div>
+  <div style="display:flex;gap:20px;">
+    <a href="#" class="footer-link">প্রাইভেসি পলিসি</a>
+    <a href="#" class="footer-link">টার্মস অ্যান্ড কন্ডিশন</a>
+    <a href="#" class="footer-link">সর্বস্বত্ব সংরক্ষিত</a>
+  </div>
+  <div style="color:var(--text-muted);font-size:0.8rem;">© ২০২৬ সালামি ডায়েরি</div>
+</footer>
+
+<!-- ══════════════════════════════════════
+     LOGIN MODAL
+══════════════════════════════════════ -->
+<div id="loginModal" class="modal-bg">
+  <div id="loginBox" class="modal-box" style="max-width:460px;border:1px solid rgba(6,182,212,0.2);">
+    <div class="modal-top-bar" style="background:linear-gradient(90deg,transparent,#06b6d4,#7c3aed,transparent);"></div>
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="width:56px;height:56px;margin:0 auto 14px;background:linear-gradient(135deg,#06b6d4,#7c3aed);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 0 30px rgba(6,182,212,0.4);">🔐</div>
+      <h2 style="font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:6px;">লগইন করুন</h2>
+      <p style="color:#94a3b8;font-size:0.88rem;">আপনার সালামি ডায়েরিতে স্বাগতম</p>
+    </div>
+    <!-- Tab -->
+    <div class="tab-bar">
+      <button id="ltEmail" class="tab-btn active" onclick="setLoginTab('email')">✉️ ইমেইল</button>
+      <button id="ltPhone" class="tab-btn" onclick="setLoginTab('phone')">📱 ফোন নম্বর</button>
+    </div>
+    <!-- Fields -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="input-group">
+        <label class="input-label" id="loginLbl">ইমেইল <span style="color:#ec4899">*</span></label>
+        <div class="input-wrap">
+          <span class="input-icon" id="loginIco">✉️</span>
+          <input id="loginField" type="email" placeholder="example@email.com" class="f-input"/>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">পাসওয়ার্ড <span style="color:#ec4899">*</span></label>
+        <div class="input-wrap" style="position:relative;">
+          <span class="input-icon">🔒</span>
+          <input id="loginPw" type="password" placeholder="আপনার পাসওয়ার্ড" class="f-input" style="padding-right:46px;"/>
+          <button onclick="togglePw('loginPw')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:#94a3b8;transition:color 0.2s;" onmouseover="this.style.color='#a78bfa'" onmouseout="this.style.color='#94a3b8'">👁️</button>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:-6px;">
+        <a href="#" style="font-size:0.77rem;color:#a78bfa;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">পাসওয়ার্ড ভুলে গেছেন?</a>
+      </div>
+      <div id="loginErr" class="err-box"></div>
+      <button id="loginBtn" class="action-btn cyan" onclick="doLogin()" style="margin-top:4px;">
+        <span id="loginBtnTxt">🔐 লগইন করুন</span>
+        <span id="loginBtnLdr" style="display:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.8s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></span>
+      </button>
+      <p style="text-align:center;color:#94a3b8;font-size:0.84rem;">
+        একাউন্ট নেই? <a href="#" onclick="event.preventDefault();closeLogin();setTimeout(openReg,400);" style="color:#a78bfa;text-decoration:none;font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">রেজিস্ট্রেশন করুন</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     REGISTRATION MODAL
+══════════════════════════════════════ -->
+<div id="regModal" class="modal-bg">
+  <div id="regBox" class="modal-box" style="max-width:520px;border:1px solid rgba(124,58,237,0.22);">
+    <div class="modal-top-bar" style="background:linear-gradient(90deg,transparent,#7c3aed,#ec4899,transparent);"></div>
+    <button class="modal-close" onclick="closeReg()">✕</button>
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="width:56px;height:56px;margin:0 auto 14px;background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 30px rgba(124,58,237,0.5);">💰</div>
+      <h2 style="font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:6px;">রেজিস্ট্রেশন করুন</h2>
+      <p style="color:#94a3b8;font-size:0.88rem;">আপনার সালামি ডায়েরি শুরু করুন আজই</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="input-group">
+          <label class="input-label">প্রথম নাম <span style="color:#ec4899">*</span></label>
+          <div class="input-wrap"><span class="input-icon">👤</span><input id="rFN" type="text" placeholder="Rahim" class="f-input"/></div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">শেষ নাম <span style="color:#ec4899">*</span></label>
+          <div class="input-wrap"><span class="input-icon">👤</span><input id="rLN" type="text" placeholder="Uddin" class="f-input"/></div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">ফোন নম্বর <span style="color:#ec4899">*</span></label>
+        <div class="input-wrap"><span class="input-icon">📱</span><input id="rPh" type="tel" placeholder="+880 1XXXXXXXXX" class="f-input"/></div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">ইমেইল <span style="color:#ec4899">*</span></label>
+        <div class="input-wrap"><span class="input-icon">✉️</span><input id="rEm" type="email" placeholder="example@email.com" class="f-input"/></div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">পাসওয়ার্ড <span style="color:#ec4899">*</span></label>
+        <div class="input-wrap" style="position:relative;">
+          <span class="input-icon">🔒</span>
+          <input id="rPw" type="password" placeholder="কমপক্ষে ৮ অক্ষর" class="f-input" style="padding-right:46px;"/>
+          <button onclick="togglePw('rPw')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:#94a3b8;transition:color 0.2s;" onmouseover="this.style.color='#a78bfa'" onmouseout="this.style.color='#94a3b8'">👁️</button>
+        </div>
+        <!-- Strength bar -->
+        <div id="strBar" style="margin-top:7px;display:none;">
+          <div style="display:flex;gap:4px;margin-bottom:3px;">
+            <div id="sb1" style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+            <div id="sb2" style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+            <div id="sb3" style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+            <div id="sb4" style="height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+          </div>
+          <span id="strTxt" style="font-size:0.7rem;color:#94a3b8;"></span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <input type="checkbox" id="rTerms" style="margin-top:3px;accent-color:#7c3aed;width:16px;height:16px;cursor:pointer;flex-shrink:0;"/>
+        <label for="rTerms" style="font-size:0.8rem;color:#94a3b8;cursor:pointer;line-height:1.5;">
+          আমি <a href="#" style="color:#a78bfa;text-decoration:none;">প্রাইভেসি পলিসি</a> এবং <a href="#" style="color:#a78bfa;text-decoration:none;">টার্মস</a> মেনে নিচ্ছি
+        </label>
+      </div>
+      <div id="regErr" class="err-box"></div>
+      <button id="regBtn" class="action-btn" onclick="doReg()" style="margin-top:4px;">
+        <span id="regBtnTxt">✚ রেজিস্ট্রেশন সম্পন্ন করুন</span>
+        <span id="regBtnLdr" style="display:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.8s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></span>
+      </button>
+      <p style="text-align:center;color:#94a3b8;font-size:0.84rem;">
+        আগে থেকে একাউন্ট আছে? <a href="#" onclick="event.preventDefault();closeReg();setTimeout(openLogin,400);" style="color:#a78bfa;text-decoration:none;font-weight:600;">লগইন করুন</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div id="sucModal" class="modal-bg" style="z-index:1002;">
+  <div style="text-align:center;animation:successPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;">
+    <div style="font-size:5rem;margin-bottom:18px;animation:bounceIn 0.6s ease 0.2s both;">🎉</div>
+    <h2 style="font-size:2rem;font-weight:700;color:#fff;margin-bottom:10px;">স্বাগতম!</h2>
+    <p style="color:#94a3b8;font-size:1rem;margin-bottom:28px;">আপনার সালামি ডায়েরি তৈরি হয়েছে সফলভাবে।</p>
+    <button onclick="closeSuc()" style="background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;border:none;padding:14px 32px;border-radius:12px;font-family:'Hind Siliguri',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 0 40px rgba(124,58,237,0.5);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">ড্যাশবোর্ডে যান →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(9,11,27,0.96);border:1px solid rgba(124,58,237,0.3);color:#e2e8f0;padding:11px 24px;border-radius:50px;font-size:0.87rem;z-index:9999;opacity:0;transition:all 0.4s;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-family:'Hind Siliguri',sans-serif;white-space:nowrap;pointer-events:none;"></div>
+
+<script>
+// ── STATE ────────────────────
+let user = null, dashVisible = false, loginTabV = 'email';
+
+// ── HELPERS ──────────────────
+function goHome(e) { if(e) e.preventDefault(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function openModal(mid, bid) {
+  const m=document.getElementById(mid), b=document.getElementById(bid);
+  m.style.display='flex'; document.body.style.overflow='hidden';
+  setTimeout(()=>b.classList.add('open'),20);
+}
+function closeModal(mid, bid, cb) {
+  const m=document.getElementById(mid), b=document.getElementById(bid);
+  b.classList.remove('open');
+  setTimeout(()=>{ m.style.display='none'; document.body.style.overflow=''; if(cb) cb(); },380);
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; },3000);
+}
+
+function togglePw(id) { const i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; }
+
+// ── LOGIN ─────────────────────
+function openLogin() { openModal('loginModal','loginBox'); }
+function closeLogin() { closeModal('loginModal','loginBox'); }
+document.getElementById('loginModal').addEventListener('click',function(e){ if(e.target===this) closeLogin(); });
+
+function setLoginTab(t) {
+  loginTabV=t;
+  const f=document.getElementById('loginField');
+  const lbl=document.getElementById('loginLbl'), ico=document.getElementById('loginIco');
+  const te=document.getElementById('ltEmail'), tp=document.getElementById('ltPhone');
+  if(t==='email'){
+    f.type='email'; f.placeholder='example@email.com';
+    lbl.innerHTML='ইমেইল <span style="color:#ec4899">*</span>'; ico.textContent='✉️';
+    te.classList.add('active'); tp.classList.remove('active');
+  } else {
+    f.type='tel'; f.placeholder='+880 1XXXXXXXXX';
+    lbl.innerHTML='ফোন নম্বর <span style="color:#ec4899">*</span>'; ico.textContent='📱';
+    tp.classList.add('active'); te.classList.remove('active');
+  }
+}
+
+function doLogin() {
+  const field=document.getElementById('loginField').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  const err=document.getElementById('loginErr');
+  const showE=m=>{ err.textContent='⚠️ '+m; err.style.display='block'; };
+  err.style.display='none';
+  if(!field) return showE(loginTabV==='email'?'ইমেইল লিখুন।':'ফোন নম্বর লিখুন।');
+  if(pw.length<4) return showE('পাসওয়ার্ড সঠিক নয়।');
+
+  // loader
+  document.getElementById('loginBtnTxt').style.display='none';
+  document.getElementById('loginBtnLdr').style.display='inline-flex';
+  document.getElementById('loginBtn').disabled=true;
+
+  setTimeout(()=>{
+    // check stored user or fallback demo
+    const su=window._regUser;
+    if(su && (su.email===field||su.phone===field) && su.pw===pw) {
+      user=su;
+    } else {
+      user={ fn:'রাহিম', ln:'উদ্দিন', email: loginTabV==='email'?field:'rahim@email.com', phone: loginTabV==='phone'?field:'01712345678', pw, rcv:700, snt:100 };
+    }
+    document.getElementById('loginBtnTxt').style.display='inline';
+    document.getElementById('loginBtnLdr').style.display='none';
+    document.getElementById('loginBtn').disabled=false;
+    document.getElementById('loginField').value='';
+    document.getElementById('loginPw').value='';
+    closeLogin();
+    setTimeout(afterLogin, 420);
+  },1500);
+}
+
+function afterLogin() {
+  document.getElementById('navLoginBtn').style.display='none';
+  document.getElementById('navRegBtn').style.display='none';
+  document.getElementById('userAvatar').style.display='block';
+  const L=(user.fn||'U')[0].toUpperCase();
+  document.getElementById('avatarLetter').textContent=L;
+  document.getElementById('dashAvBig').textContent=L;
+  document.getElementById('dashName').textContent=(user.fn||'')+' '+(user.ln||'');
+  document.getElementById('dashEmail').textContent=user.email||'';
+  document.getElementById('dashPhone').textContent='📱 '+(user.phone||'');
+  document.getElementById('dashRcv').textContent='৳'+(user.rcv||700);
+  document.getElementById('dashSnt').textContent='৳'+(user.snt||100);
+  toast('স্বাগতম, '+(user.fn||'ব্যবহারকারী')+'! 🎉');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function doLogout() {
+  user=null; closeDash();
+  setTimeout(()=>{
+    document.getElementById('navLoginBtn').style.display='';
+    document.getElementById('navRegBtn').style.display='';
+    document.getElementById('userAvatar').style.display='none';
+    toast('লগআউট সফল হয়েছে।');
+  },300);
+}
+
+// ── DASHBOARD ─────────────────
+function toggleDash() { dashVisible ? closeDash() : openDash(); }
+function openDash() {
+  const d=document.getElementById('miniDash');
+  d.style.display='block'; dashVisible=true;
+  setTimeout(()=>d.classList.add('open'),10);
+}
+function closeDash() {
+  const d=document.getElementById('miniDash');
+  d.classList.remove('open'); dashVisible=false;
+  setTimeout(()=>d.style.display='none',300);
+}
+document.addEventListener('click',function(e){
+  const av=document.getElementById('userAvatar');
+  if(dashVisible && av && !av.contains(e.target)) closeDash();
+});
+
+// ── REGISTRATION ──────────────
+function openReg() { openModal('regModal','regBox'); }
+function closeReg() { closeModal('regModal','regBox'); }
+document.getElementById('regModal').addEventListener('click',function(e){ if(e.target===this) closeReg(); });
+
+document.getElementById('rPw').addEventListener('input',function(){
+  const v=this.value, b=document.getElementById('strBar');
+  if(!v){ b.style.display='none'; return; }
+  b.style.display='block';
+  let s=0;
+  if(v.length>=8) s++; if(/[A-Z]/.test(v)) s++; if(/[0-9]/.test(v)) s++; if(/[^A-Za-z0-9]/.test(v)) s++;
+  const C=['#ef4444','#f97316','#eab308','#22c55e'],L=['দুর্বল','মোটামুটি','ভালো','শক্তিশালী'];
+  for(let i=1;i<=4;i++) document.getElementById('sb'+i).style.background=i<=s?C[s-1]:'rgba(255,255,255,0.1)';
+  document.getElementById('strTxt').textContent='পাসওয়ার্ড: '+(L[s-1]||'');
+  document.getElementById('strTxt').style.color=C[s-1]||'#94a3b8';
+});
+
+function doReg() {
+  const fn=document.getElementById('rFN').value.trim();
+  const ln=document.getElementById('rLN').value.trim();
+  const ph=document.getElementById('rPh').value.trim();
+  const em=document.getElementById('rEm').value.trim();
+  const pw=document.getElementById('rPw').value;
+  const tc=document.getElementById('rTerms').checked;
+  const err=document.getElementById('regErr');
+  const showE=m=>{ err.textContent='⚠️ '+m; err.style.display='block'; };
+  err.style.display='none';
+  if(!fn) return showE('প্রথম নাম লিখুন।');
+  if(!ln) return showE('শেষ নাম লিখুন।');
+  if(!ph||ph.length<11) return showE('সঠিক ফোন নম্বর দিন।');
+  if(!em||!em.includes('@')) return showE('সঠিক ইমেইল ঠিকানা দিন।');
+  if(pw.length<8) return showE('পাসওয়ার্ড কমপক্ষে ৮ অক্ষর হতে হবে।');
+  if(!tc) return showE('প্রাইভেসি পলিসি ও টার্মস মেনে নিন।');
+
+  document.getElementById('regBtnTxt').style.display='none';
+  document.getElementById('regBtnLdr').style.display='inline-flex';
+  document.getElementById('regBtn').disabled=true;
+
+  setTimeout(()=>{
+    window._regUser={ fn,ln,phone:ph,email:em,pw,rcv:0,snt:0 };
+    document.getElementById('regBtnTxt').style.display='inline';
+    document.getElementById('regBtnLdr').style.display='none';
+    document.getElementById('regBtn').disabled=false;
+    ['rFN','rLN','rPh','rEm','rPw'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('rTerms').checked=false;
+    document.getElementById('strBar').style.display='none';
+    closeReg();
+    setTimeout(()=>{ document.getElementById('sucModal').style.display='flex'; document.body.style.overflow='hidden'; },420);
+  },1800);
+}
+
+function closeSuc() {
+  document.getElementById('sucModal').style.display='none';
+  document.body.style.overflow='';
+  goHome(null);
+}
+
+// ── MISC ──────────────────────
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeLogin(); closeReg(); closeDash(); } });
+
+// Floating dots
+const dc=document.getElementById('floatingDots');
+for(let i=0;i<20;i++){
+  const d=document.createElement('div'); d.className='dot';
+  d.style.left=Math.random()*100+'%';
+  d.style.width=d.style.height=(2+Math.random()*4)+'px';
+  d.style.animationDuration=(8+Math.random()*12)+'s';
+  d.style.animationDelay=(Math.random()*10)+'s';
+  d.style.background=['rgba(124,58,237,0.6)','rgba(236,72,153,0.6)','rgba(6,182,212,0.6)'][Math.floor(Math.random()*3)];
+  dc.appendChild(d);
+}
+
+// Scroll reveal
+const ob=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); }),{threshold:0.15});
+document.querySelectorAll('.animate-fade-up').forEach(el=>ob.observe(el));
+
+// Mouse glow on feature cards
+document.querySelectorAll('.feature-card').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',((e.clientX-r.left)/r.width)*100+'%');
+    c.style.setProperty('--my',((e.clientY-r.top)/r.height)*100+'%');
+  });
+});
+</script>
+</body>
+</html>
